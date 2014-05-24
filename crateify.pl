@@ -2,26 +2,30 @@
 
 =pod
 
-=head2 NAME
+=head1 NAME
 
 crateify.pl - Package up files for backing up in the cloud
 
-=head2 DESCRIPTION
+=head1 SYNOPSIS
+
+crateify.pl [options]
+
+=head1 DESCRIPTION
 
 This script packages files within a directory tree into compressed,
 encrypted tar "crates" that can be easily uploaded to free cloud
 storage accounts, providing a sort of poor-man's cloud backup
 solution.
 
-The files are packaged in chronological order, i.e., oldest files
+The files are packaged in chronological order, i.e. oldest files
 first, to minimize the frequency with which you have to rebuild
 crates. Files that are updated between runs of the script are
 repackaged in new crates.
 
-=head2 CONFIGURATION SETTINGS
+=head1 CONFIGURATION SETTINGS
 
-The following variables can and should be edited in the script before
-you use it:
+The following variables can and should be set in a configuration file
+before you use this script:
 
 =over
 
@@ -57,6 +61,15 @@ The (pre-compression, pre-encryption) size of each crate, in
 bytes. A crates can end up being much bigger than this if the last
 file inserted into it is large.
 
+=item $compressor
+
+The compression method to use for compressing the crates. Supported
+compression methods include gzip, bzip2, and xz.
+
+=item $cratedigits
+
+Number of digits to use when naming crates (crate-I<#####>)
+
 =item @exclude
 
 Regular expressions (relative to the root of I<$backup_dir>) of
@@ -89,18 +102,22 @@ first and @exclude is applied to what's left.
 =item @include
 
 Regular expressions (relative to the root of I<$backup_dir>) of
-directories and files to be included from crating.
+directories and files to be included in crating.
 
 If you specify both @exclude and @include, then @include is applied
 first and @exclude is applied to what's left.
 
 =back
 
-=head2 OPTIONS
+=head1 OPTIONS
 
 =over
 
-=item --crates=I<#>
+=item --config=I<file>
+
+Configuration file (default F<~/.crateify>)
+
+=item --crates=I<number>
 
 Produce (at most) te specified number of crates, rather than just one
 new crate, which is the default.
@@ -124,7 +141,7 @@ crates.
 
 =back
 
-=head2 COMPACTING CRATES
+=head1 COMPACTING CRATES
 
 The early crates you build will probably be relatively static,
 assuming that you have a lot of old data that isn't likely to change
@@ -133,7 +150,8 @@ anymore.
 However, over time your crates will accumulate files that are obsolete
 because they've been deleted or updated versions have been packed into
 newer crates. Each time you run it, the script prints warnings about
-such files.
+such files. The total size of the non-obsolete files in each crate is
+listed in the uptodate file.
 
 You will probably want to occasionally "compact" your crates to remove
 such obsolete files. To do this, simply remove the corresponding
@@ -141,7 +159,7 @@ crate-I<#####> files from I<$data_dir>, and the corresponding compressed,
 encrypted tar files from wherever you put them, and the script will
 repack the files that were in those crates the next time you run it.
 
-=head2 META-DATA FILES
+=head1 METADATA FILES
 
 The script creates the following meta-data files:
 
@@ -173,7 +191,7 @@ a file with this name in I<$data_dir> or it'll get overwritten.
 
 =item excludes
 
-A list of all te files in all of the crates, intended to be used to
+A list of all the files in all of the crates, intended to be used to
 exclude those files from some I<other> backup system.
 
 Suppose you want to use this script to back up your old, static files
@@ -186,9 +204,15 @@ For example, if you use rsync to backup frequently changing files to a
 remote filesystem, then you can tell it to "--exclude-from
 I<$data_dir>/excludes".
 
+=item uptodate
+
+A list of crates, with the total size (in bytes) of contained files
+that are not obsolete. A crate listed with up-to-date size 0 contains
+only obsolete files.
+
 =back
 
-=head2 WHERE TO PUT THE CRATES
+=head1 WHERE TO PUT THE CRATES
 
 The crates you build with this script obviously don't do much good as
 a backup if they sit on the same drive as the files being backed
@@ -231,7 +255,7 @@ automatically. Occasionally, I compact the Dropbox crates as described
 above and move some of the compacted crates SkyDrive or LetsCrate as
 needed.
 
-=head3 What if a crate is too big?
+=head2 What if a crate is too big?
 
 You probably have some really huge files (home videos, anyone?) that
 you want to back up. Since this script doesn't split files between
@@ -256,7 +280,7 @@ split files directly into gpg, something like this:
 
   cat crate-#####.tar.bz2.gnupg.* | gpg | tar xj
 
-=head2 DOING A RESTORE
+=head1 DOING A RESTORE
 
 If you can't figure out on your own how to restore from the crates
 produced by this script, then you probably shouldn't use it. CrashPlan
@@ -272,7 +296,7 @@ Alternatively, if you just need to restore a specific file, you can
 look through the crate-I<#####> files in reverse order to find the
 file you want, and then extract it from the corresponding crate.
 
-=head2 WHAT THIS SCRIPT ISN'T
+=head1 WHAT THIS SCRIPT ISN'T
 
 This script isn't really intended to preserve historical versions of
 files or to allow you to recover files that were deleted long ago. It
@@ -283,14 +307,17 @@ Therefore, if you want access to a historical record of your files, as
 opposed to an emergency recovery snapshot of what you've got on disk
 right now, this probably isn't the right tool for you.
 
-=head2 AUTHOR
+=head1 AUTHOR
 
 This script was written and is maintained by Jonathan Kamens
 E<lt>jik@kamens.usE<gt>.
 
 Please let me know if you have questions, comments or suggestions!
 
-=head2 OTHER FREE BACKUP SOLUTIONS
+Modified by nandhp <nandhp@gmail.com> to use a separate configuration
+file and to avoid writing unencrypted crates to the disk.
+
+=head1 OTHER FREE BACKUP SOLUTIONS
 
 I won't lie to you... It takes work to set up and use this script for
 backups. If you're the kind of do-it-yourselfer who likes stuff like
@@ -301,7 +328,7 @@ There are probably quite a few of them, but if you have one that's
 you're favorite please free to email me email me and I'll add it here,
 but here's the one I like...
 
-=head3 CrashPlan
+=head2 CrashPlan
 
 CrashPlan (L<http://crashplan.com/>), which I've mentioned elsewhere
 in this document, will let you back up an unlimited amount of data to
@@ -322,7 +349,7 @@ it'll probably take longer from your friend's computer than it would
 from something in the cloud, since most home Internet connections have
 a slower uplink speed than downlink.
 
-=head2 DONATIONS
+=head1 DONATIONS
 
 This script is and always will be free for you to use or modify as you
 see fit. Having said that, it took me time to write the script, and it
@@ -332,9 +359,10 @@ sending me a donation at
 L<http://blog.kamens.us/support-my-blog/>. Any donation, large or
 small, is appreciated!
 
-=head2 COPYRIGHT
+=head1 COPYRIGHT
 
 Copyright (c) 2011 Jonathan Kamens.
+Copyright (c) 2013-2014 nandhp <nandhp@gmail.com>.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -346,55 +374,45 @@ WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 General Public License for more details.
 
-=head2 VERSION
-
-$Id: crateify.pl,v 1.35 2012/01/04 13:07:30 jik Exp $
-
-The current version of this script should always be available from
-L<http://stuff.mit.edu/~jik/software/crateify.pl.txt>.
+The original version of this script (Jonathan Kamen's version) is
+available from L<http://stuff.mit.edu/~jik/software/crateify.pl.txt>.
 
 =cut
 
+use strict;
+use warnings;
 
+use File::Find;
+use File::stat;
+use Getopt::Long;
+use Pod::Usage;
 
-### CONFIGURATION SETTINGS ###
+my $scan = undef;
+my $crates = undef;
+my $quiet = undef;
+my $full = undef;
+my $throttle = undef;
 
-# The directory whose contents should be crated. All regular files in
-# it will be crated eventually, in chronological order. Directories,
-# symbolic links, and other non-regular files are not crated, although
-# of course directories end up in the tar archive implicitly.
-my $backup_dir = "/mnt/backup/jik2";
+my $config = "$ENV{HOME}/.crateify";
+pod2usage(2) if !GetOptions(
+    'config=s' => \$config,
+    "scan" => \$scan,
+    "crates=i" => \$crates,
+    "quiet" => \$quiet,
+    "full" => \$full,
+    "throttle=i" => \$throttle,
+    "help|?" => sub { pod2usage(1) }) or @ARGV;
 
-# Where to store crates temporarily as well as the meta-data files
-# associated with the crates.
-my $data_dir = "/backups/crates";
+die "Don't specify both --crates and --full\n" if ($crates and $full);
+$crates = 1 if (! ($crates or $full));
 
-# The gpg home directory.
-my $gpg_dir = "/home/jik/.gnupg";
+# Load configuration file
+our ($backup_dir, $data_dir, $gpg_dir, $gpg_key, $archive_size,
+    @include, @exclude, $compressor, $cratedigits);
+do $config or die "Can't read $config: $!\n";
 
-# The identifier for your GPG private key to be used to encrypt the
-# crates.
-my $gpg_key = "jik\@kamens.us";
-
-# How big to make each crate. Note that this is a pre-compression
-# size. Not further that a crate could actually be much, much bigger
-# if the last file inserted into it is much larger than the limit.
-my $archive_size = 50000000;
-
-# Regexps to include
-my @include = (
-    );
-
-# Regexps to exclude
-my @exclude = (
-    qr(^rdiff-backup-data$),
-    qr(^var/lib/rpm$),
-    qr(^var/state/logwatch$),
-    );
-
-### END CONFIGURATION SETTINGS ###
-
-
+# Compressor configuration
+my %compressors = ('gzip' => 'gz', 'bzip2' => 'bz2', 'xz' => 'xz');
 
 # Where to save the list of files that have been deleted since they
 # were crated. You can use this list during a restore to find out
@@ -415,29 +433,13 @@ my $exclude_list = "$data_dir/excludes"; # Exclude from nightly backup
 # were crated.
 my $updated_list = "$data_dir/updated";
 
-use strict;
-use warnings;
-
-use File::Find;
-use File::stat;
-use Getopt::Long;
-
-my $scan = undef;
-my $crates = undef;
-my $quiet = undef;
-my $full = undef;
-
-die if (! GetOptions("scan" => \$scan,
-		     "crates=i" => \$crates,
-		     "quiet" => \$quiet,
-		     "full" => \$full));
-
-die "Don't specify both --crates and --full\n" if ($crates and $full);
-$crates = 1 if (! ($crates or $full));
+# List of crates, with the number of bytes in each that remains up-to-date.
+my $uptodate_list = "$data_dir/uptodate";
 
 # Build hash of all candidate files
 
 my %on_disk;
+my $nfiles = 0;
 
 sub wanted {
     my $name = $File::Find::name;
@@ -468,18 +470,22 @@ sub wanted {
     my $st = lstat($_);
     return if (! -f $st);
     $on_disk{$name} = $st;
+    $nfiles++;
+    sleep(1) if $throttle and $nfiles % $throttle == 0;
 }
 
 chdir($backup_dir) || die;
 
 find(\&wanted, ".");
+print "Found $nfiles files\n";
 
 # Build hash of all crates that have already been uploaded
 
 my %in_crate;
 my $last_crate;
+my %crate_valid_size;
 
-foreach my $crate (glob "$data_dir/crate-[0-9][0-9][0-9][0-9][0-9]") {
+foreach my $crate (glob "$data_dir/crate-".("[0-9]"x$cratedigits)) {
     $last_crate = $crate;
     open(CRATE, "<", $crate) or die;
     while (<CRATE>) {
@@ -487,6 +493,7 @@ foreach my $crate (glob "$data_dir/crate-[0-9][0-9][0-9][0-9][0-9]") {
 	s/ (\d+)$//;
 	$in_crate{$_} = [$crate, $1];
     }
+    $crate_valid_size{$crate} = 0;
 }
 
 # Figure out which files have been deleted
@@ -517,15 +524,23 @@ foreach my $in (sort keys %in_crate) {
     else {
 	print(EXCLUDES $in, "\n") or die;
 	delete $on_disk{$in};
+        $crate_valid_size{$crate} += -s $in;
     }
 }
 close(UPDATED) or die;
 rename("$updated_list.tmp", $updated_list) or die;
 
+open(UPTODATE, '>', "$uptodate_list.tmp") or die;
+foreach my $crate ( sort { $crate_valid_size{$a} <=> $crate_valid_size{$b} }
+                    keys %crate_valid_size ) {
+    print UPTODATE "$crate $crate_valid_size{$crate}\n";
+}
+rename("$uptodate_list.tmp", $uptodate_list) or die;
+
 sub make_crate {
     # Find next crate number to use
 
-    my $crate_format = "$data_dir/crate-%05d";
+    my $crate_format = "$data_dir/crate-%0" . $cratedigits . 'd';
     my($crate_index, $crate_basename);
     if ($last_crate) {
 	$last_crate =~ /(\d+)$/ or die;
@@ -559,21 +574,43 @@ sub make_crate {
     return 0 if (! $total_size);
 
     # Tar it up
-
-    my $tar_file = "$crate_basename.tar.bz2";
-    my(@cmd) = ("tar", "--create", "--bzip2", "--files-from", $packing_list,
-		"--file", $tar_file);
+    my $use_gpg = $gpg_dir && $gpg_key;
+    my $tar_file = "$crate_basename.tar.$compressors{$compressor}";
+    my(@cmd) = ("tar", "--create", "--$compressor",
+                "--files-from", $packing_list,
+                "--file", $use_gpg ? '-' : $tar_file);
     print "TARRING: @cmd\n" if (! $quiet);
-    system(@cmd) and die;
 
-    my $gpg_file = "$tar_file.gnupg";
-    @cmd = ("gpg", "--batch", "--homedir", $gpg_dir, "--encrypt",
-	    "--default-key", $gpg_key, "--no-permission-warning",
-	    "--output", $gpg_file, $tar_file);
-    print "ENCRYPTING: @cmd\n" if (! $quiet);
-    system(@cmd) and die;
-    -f $gpg_file or die "$gpg_file does not exist\n";
-    unlink($tar_file) or die;
+    if ( $use_gpg ) {
+        my $tarpid = open TAR, '-|', @cmd or die "Opening tar: $!";
+        system("cpulimit --limit=20 --background --pid=$tarpid " .
+               '>/dev/null 2>&1')
+            if $throttle;
+        binmode(TAR);
+        my ($gpg_file, $tmp_file) = ("$tar_file.gpg", "$tar_file.tmp");
+        -f $tmp_file and unlink $tmp_file;
+        @cmd = ("gpg", "--batch", "--homedir", $gpg_dir, "--encrypt",
+                "--default-key", $gpg_key, "--default-recipient", $gpg_key,
+                "--no-permission-warning",
+	        "--output", $tmp_file);
+        print "ENCRYPTING: @cmd\n" if (! $quiet);
+        #system(@cmd) and die;
+        open GPG, '|-', @cmd or die "Opening gpg: $!";
+        binmode(GPG);
+        my ($bufsize, $buf, $rc) = (1048576,'', 0);
+        print GPG $buf while $rc = read(TAR, $buf, $bufsize);
+        die unless defined $rc;
+        close TAR or die "Closing tar($?): $!";
+        close GPG or die "Closing gpg($?): $!";
+        rename $tmp_file, $gpg_file;
+        -f $gpg_file or die "$gpg_file does not exist\n";
+        #unlink($tar_file) or die;
+    }
+    else {
+        warn "Not encrypting $tar_file\n";
+        system(@cmd) and die;
+        -f $tar_file or die "$tar_file does not exist\n";
+    }
 
     # Save the crate file
 
