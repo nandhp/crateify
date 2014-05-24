@@ -1,0 +1,58 @@
+### CONFIGURATION SETTINGS ### -*-perl-*-
+
+# The directory whose contents should be crated. All regular files in
+# it will be crated eventually, in chronological order. Directories,
+# symbolic links, and other non-regular files are not crated, although
+# of course directories end up in the tar archive implicitly.
+our $backup_dir = "$ENV{HOME}";
+
+# Where to store crates temporarily as well as the meta-data files
+# associated with the crates.
+our $data_dir = "$ENV{HOME}/crates"; # ~/crates
+
+# The gpg home directory.
+our $gpg_dir = "$data_dir/gnupg";
+
+# The identifier for your GPG private key to be used to encrypt the
+# crates.
+our $gpg_key = "keyid";
+
+# How big to make each crate. Note that this is a pre-compression
+# size. Not further that a crate could actually be much, much bigger
+# if the last file inserted into it is much larger than the limit.
+our $archive_size = 50000000;
+
+# Compressor to use (gzip, bzip2, xz)
+our $compressor = 'gzip';
+
+# Number of digits to use when naming crates (crate-#####)
+our $cratedigits = 5;
+
+# Regexps to include
+our @include = (
+    );
+
+# Regexps to exclude
+our @exclude = (
+    # General caches, etc.
+    qr(^\.(cache|thumbnails|trash|xsession-errors)),
+    qr(^\.local/share/Trash/)i,
+    qr(urlclassifier[^/]*$),
+    qr((^|/)(Cache|NativeCache)/)i,
+
+    # Software distributions
+    qr(^\.dropbox(|-dist)),
+    qr(^opt/(firefox|thunderbird)),
+
+    # Misc directories to exclude
+    qr(^(Dropbox|Downloads)/)i,
+
+    # Filenames and file types to exclude
+    qr(Thumbs.db|\.xvpics|.[_.]*DS_Store)i,
+    qr(\.(avi|mp4|m4v|flv|mkv|iso|pch|zim|vmdk|qcow2?|vhd|vdi)$)i,
+
+    # Exclude crates
+    qr(/crate-\d+\.tar\.[bgx]z\d?\.(tmp|gpg)$),
+    );
+
+### END CONFIGURATION SETTINGS ###
