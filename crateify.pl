@@ -445,26 +445,26 @@ sub wanted {
     my $name = $File::Find::name;
     $name =~ s/..//; # get rid of ./ at beginning
     if ($name =~ /\n/) {
-	$File::Find::prune = 1;
-	return;
+        $File::Find::prune = 1;
+        return;
     }
     my $do_not_include;
     if (@include) {
-	$do_not_include = 1;
-	foreach my $re (@include) {
-	    if ($name =~ /$re/) {
-		$do_not_include = undef;
-		last;
-	    }
-	}
+        $do_not_include = 1;
+        foreach my $re (@include) {
+            if ($name =~ /$re/) {
+                $do_not_include = undef;
+                last;
+            }
+        }
     }
     # For efficiency, we check the exclude list even if we already
     # know this particular file doesn't match @include, because it may
     # be that @exclude says we should exclude an entire tree, so
     # excluding it from further review will make things run faster.
     if (grep($name =~ /$_/, @exclude)) {
-	$File::Find::prune = 1;
-	return;
+        $File::Find::prune = 1;
+        return;
     }
     return if ($do_not_include);
     my $st = lstat($_);         # Returns a File::stat object
@@ -490,9 +490,9 @@ foreach my $crate (glob "$data_dir/crate-".("[0-9]"x$cratedigits)) {
     $last_crate = $crate;
     open(CRATE, "<", $crate) or die;
     while (<CRATE>) {
-	chomp;
-	s/ (\d+)$//;
-	$in_crate{$_} = [$crate, $1];
+        chomp;
+        s/ (\d+)$//;
+        $in_crate{$_} = [$crate, $1];
     }
     $crate_valid_size{$crate} = 0;
 }
@@ -503,8 +503,8 @@ open(DELETED, ">", "$deleted_list.tmp") or die;
 foreach my $in (sort keys %in_crate) {
     my $crate = $in_crate{$in}->[0];
     if (! $on_disk{$in}) {
-	print "DELETED: $in from $crate\n" if (! $quiet);
-	print(DELETED "$in from $crate\n") or die;
+        print "DELETED: $in from $crate\n" if (! $quiet);
+        print(DELETED "$in from $crate\n") or die;
     }
 }
 close(DELETED) or die;
@@ -519,13 +519,13 @@ foreach my $in (sort keys %in_crate) {
     my $stamp = $in_crate{$in}->[1];
     next if (! $on_disk{$in}); # deleted
     if ($stamp != $on_disk{$in}->mtime) {
-	print(UPDATED "$in from $crate\n") or die;
-	print "UPDATED: $in from $crate\n" if (! $quiet);
+        print(UPDATED "$in from $crate\n") or die;
+        print "UPDATED: $in from $crate\n" if (! $quiet);
     }
     else {
         $crate_valid_size{$crate} += -s $on_disk{$in};
-	print(EXCLUDES $in, "\n") or die;
-	delete $on_disk{$in};
+        print(EXCLUDES $in, "\n") or die;
+        delete $on_disk{$in};
     }
 }
 close(UPDATED) or die;
@@ -544,11 +544,11 @@ sub make_crate {
     my $crate_format = "$data_dir/crate-%0" . $cratedigits . 'd';
     my($crate_index, $crate_basename);
     if ($last_crate) {
-	$last_crate =~ /(\d+)$/ or die;
-	$crate_index = $1 + 1;
+        $last_crate =~ /(\d+)$/ or die;
+        $crate_index = $1 + 1;
     }
     else {
-	$crate_index = 1;
+        $crate_index = 1;
     }
     $crate_basename = sprintf($crate_format, $crate_index);
     $last_crate = $crate_basename;
@@ -559,16 +559,16 @@ sub make_crate {
     my $total_size = 0;
     open(PACK, ">", $packing_list) or die;
     foreach my $file (sort { $on_disk{$a}->mtime <=> $on_disk{$b}->mtime }
-		      keys %on_disk) {
-	print(PACK $file, "\n") or die;
-	$total_size += $on_disk{$file}->size;
-	$in_crate{$file} = [$crate_basename, $on_disk{$file}->mtime];
-	delete $on_disk{$file};
-	print(EXCLUDES $file, "\n") or die;
-	if ($total_size > $archive_size) {
-	    print "FULL: $total_size > $archive_size\n" if (! $quiet);
-	    last;
-	}
+                      keys %on_disk) {
+        print(PACK $file, "\n") or die;
+        $total_size += $on_disk{$file}->size;
+        $in_crate{$file} = [$crate_basename, $on_disk{$file}->mtime];
+        delete $on_disk{$file};
+        print(EXCLUDES $file, "\n") or die;
+        if ($total_size > $archive_size) {
+            print "FULL: $total_size > $archive_size\n" if (! $quiet);
+            last;
+        }
     }
     close(PACK) or die;
 
@@ -593,7 +593,7 @@ sub make_crate {
         @cmd = ("gpg", "--batch", "--homedir", $gpg_dir, "--encrypt",
                 "--default-key", $gpg_key, "--default-recipient", $gpg_key,
                 "--no-permission-warning",
-	        "--output", $tmp_file);
+                "--output", $tmp_file);
         print "ENCRYPTING: @cmd\n" if (! $quiet);
         #system(@cmd) and die;
         open GPG, '|-', @cmd or die "Opening gpg: $!";
@@ -618,8 +618,8 @@ sub make_crate {
     open(CRATE, ">", "$crate_basename.tmp") or die;
     open(PACK, "<", $packing_list) or die;
     while (<PACK>) {
-	chomp;
-	print(CRATE $_, " ", $in_crate{$_}->[1], "\n");
+        chomp;
+        print(CRATE $_, " ", $in_crate{$_}->[1], "\n");
     }
     close(PACK) or die;
     close(CRATE) or die;
@@ -632,7 +632,7 @@ sub make_crate {
 
 if (! $scan) {
     while ($full or $crates-- > 0) {
-	last if (! &make_crate);
+        last if (! &make_crate);
     }
 }
 
