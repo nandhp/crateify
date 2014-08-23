@@ -467,8 +467,9 @@ sub wanted {
 	return;
     }
     return if ($do_not_include);
-    my $st = lstat($_);
-    return if (! -f $st);
+    my $st = lstat($_);         # Returns a File::stat object
+    # Include symlinks, named pipes, and devices, but not sockets.
+    return if -d $st or -S $st;
     $on_disk{$name} = $st;
     $nfiles++;
     sleep(1) if $throttle and $nfiles % $throttle == 0;
@@ -522,9 +523,9 @@ foreach my $in (sort keys %in_crate) {
 	print "UPDATED: $in from $crate\n" if (! $quiet);
     }
     else {
+        $crate_valid_size{$crate} += -s $on_disk{$in};
 	print(EXCLUDES $in, "\n") or die;
 	delete $on_disk{$in};
-        $crate_valid_size{$crate} += -s $in;
     }
 }
 close(UPDATED) or die;
