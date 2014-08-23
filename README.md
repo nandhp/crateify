@@ -3,7 +3,8 @@ encrypted tar "crates" that can be easily uploaded to free cloud
 storage accounts.
 
 It is a fork of [crateify by Jonathan
-Kamen](http://stuff.mit.edu/~jik/software/crateify.pl.txt).
+Kamen](http://stuff.mit.edu/~jik/software/crateify.pl.txt), with the
+following improvements:
 
 * Configuration is stored in a separate file
 * Unencrypted crates are never written to the disk
@@ -12,3 +13,4 @@ Kamen](http://stuff.mit.edu/~jik/software/crateify.pl.txt).
   in each crate
 * Scripts (send-crates-rsync and clean-crates) to manage the sending
   of crates to multiple destinations
+* Special files (symlinks, named pipes, and devices) are backed up
