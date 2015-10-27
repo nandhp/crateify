@@ -181,4 +181,6 @@ unlock($dbfh);
 close($dbfh) or die "Can't close $dbfile: $!";
 
 # Files were transferred; run clean-crates
-system "$FindBin::Bin/clean-crates.pl";
+@opts = ('--config', $config);
+unshift @opts, '--quiet' unless $verbose;
+system "$FindBin::Bin/clean-crates.pl", @opts;
